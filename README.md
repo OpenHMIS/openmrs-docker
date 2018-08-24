@@ -22,7 +22,110 @@ To get the latest release, the following tags can be used:
 
 The `latest` tag will always be the image for the last released platform with the last released reference application.
 
-# How to Use the OpenHMIS Images
+# How to Use the OpenHMIS Images using docker-compose
+
+##Edit the docker-compose.yml file
+
+There are a number of Environment Variables to set in the docker compose file, namely:
+
+### container_name: nameofthecontainer
+This is the name of the container. You can change this to any name you would like.
+
+###image: openhmis/openmrs-docker:latest
+Incase you want to pull from a pre-built container that is already in the dockerhub registry then make sure this line is uncomment and edit the tag with whatever version of openmrs you want to install. You will find a list of tags that you can use here: https://hub.docker.com/r/openhmis/openmrs-docker/tags/
+
+### build
+build:
+  context: .
+These 2 lines allow you to build your container. This is useful if you have made changes to any of the files in this repo for instance if you have made a change to the run.sh script then  you need to build the container for the changes to take effect. Remember to comment out the image line above since you are building a new container instead of pulling a pre-existing one.
+    
+###restart: unless-stopped
+This is the docker restart policy. This will restart the docker container except in the case where it was stopped. You can see more information here: https://docs.docker.com/config/containers/start-containers-automatically/
+
+###depends_on:
+- mysqlcontainername
+This is how docker compose will prioritize which container will start before the other. So in this case the mysql container needs to start before the openmrs container. NB You need to specify the same container name that you give the mysql container in your compose file.
+
+###links:
+- mysqlcontainername:mysql
+This is how the openmrs container will obtain the IP of the mysql container. The :mysql is the mysql containers hostname and should not be changed. In the OpenMRS properties file, we give the mysql container's hostname as the connection string instead of hardcoding the initial mysql container's IP that may keep on changing. NB: This works well with mysql 5.6 and mysql 5.7 containers.
+
+###ports:
+- portonhost:portoncontainer
+This will map the openmrs's container port to the host's port.
+
+###volumes:
+- openmrs:/root/.OpenMRS
+This is optional. You can use this to expose openmrs working directory to the host so you can easily access modules and so on.
+
+## OpenHMIS Environment Variables
+    environment:
+      - DB_NAME=databasename
+      - OPENMRS_MYSQL_HOST=nameofmysqlhost
+      - OPENMRS_MYSQL_PORT=mysqlport
+      # Uncomment to load demo data
+      - DEMO_DATA=1
+      - DB_USER=mysqlrootusername
+      - DB_PASS=mysqlrootpassword
+      - EXCLUDE_OPENHMIS=1
+
+### DEMO_DATA
+
+Tells the script to load the demo data. This parameter simply needs to be set to something, the value does not matter.
+
+### DB_USER (Required if loading demo data)
+
+The MySQL user account that will be used to prepare the database. This account must have access to create databases and users. Note that this is not the account which will be used by OpenMRS.
+
+### DB_PASS (Required if loading demo data)
+
+The MySQL account password.
+
+### OPENMRS_MYSQL_HOST
+
+The MySQL host ip address. If not specified this will be the address defined in MYSQL_PORT_3306_TCP_ADDR which gets set via the linked MySQL image.
+
+### OPENMRS_MYSQL_PORT
+
+The MySQL host port. If not specified this will be the port defined in MYSQL_PORT_3306_TCP_ADDR which gets set via the linked MySQL image.
+
+### DB_NAME
+
+The name to use for the OpenMRS database. If not defined this will be set to the default database name for the image selected. If a database with the specified name already exists it will not be updated and the specified OpenMRS user will be given access to it.
+
+### EXCLUDE_OPENHMIS
+
+Tells the script to not download and install the OpenHMIS modules. This parameter simply needs to be set to something, the value does not matter.
+
+## Create the openmrs and mysql containers using docker-compose
+
+This assumes you are in the directory from where you have copied over the files in this repository. So run the command. This will download the images if not present and start up the containers as defined in the docker-compose.yml file. This command will create the containers and start them.
+
+    docker-compose up -d
+ 
+For more instruction on the options for docker-compose, you can run the docker-compose --help option
+
+## Stop and Start the openmrs and mysql containers using docker-compose
+
+From the directory with the docker-compose.yml file, run the following command:
+
+    docker-compose stop
+
+To start the services/containers:
+
+    docker-compose start
+
+For more instruction on the options for docker-compose, you can run the docker-compose --help option
+
+### Deleting the containers, volumes and images
+
+If you want to destroy all the data, containers and images, the run this command
+
+    docker-compose down --rmi all -v 
+
+For more instruction on the options for docker-compose, you can run the docker-compose --help option
+
+# How to Use the OpenHMIS Images Using docker run
 
 ## Setting up MySQL
 

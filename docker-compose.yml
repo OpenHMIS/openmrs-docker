@@ -2,18 +2,20 @@ version: '3'
 services:
   openhmis:
     container_name: openhmis_openmrs
-    build:
-      context: .
+    image: openhmis/openmrs-docker:latest
+    #uncomment below to build image and comment out the above image line
+    #build:
+    #  context: .
     restart: unless-stopped
     environment:
-      - DB_NAME=openmrs_docker
+      - DB_NAME=openmrs
       - OPENMRS_MYSQL_HOST=openhmis_mysql
       - OPENMRS_MYSQL_PORT=3306
       # Uncomment to load demo data
       - DEMO_DATA=1
       - DB_USER=root
-      - DB_PASS=test
-      - EXCLUDE_OPENHMIS=1
+      - DB_PASS=aivu7Jeziicha4UNgain
+      #- EXCLUDE_OPENHMIS=1
     depends_on:
       - openhmis_mysql
     links:
@@ -28,10 +30,10 @@ services:
 
   openhmis_mysql:
     container_name: openhmis_mysql
-    image: mysql/mysql-server:5.6
+    image: mysql/mysql-server:5.7
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=test
+      - MYSQL_ROOT_PASSWORD=aivu7Jeziicha4UNgain
       - MYSQL_ROOT_HOST=172.%    # Allow docker contatiners to connect to mysql
     ports:
       - 3309:3306
